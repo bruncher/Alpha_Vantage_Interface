@@ -2,7 +2,7 @@
 VBA code for Excel to download and analyze historic financial security prices using the Alpha Vantage API
 
 This is a simple tool to help determine whether the price of a security is high or low compared to the previous year's closing prices.
-It indicates three factors: % current price compared to high / low of last year, 1-year growth, % current is above average for previous year.
+It indicates three factors: % current price compared to high / low of last year, 1-year growth, current price % above average for previous year.
 
 This code does the following:
 - Connects to the Alpha Vantage API by clicking an Excel button
