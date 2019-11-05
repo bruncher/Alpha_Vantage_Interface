@@ -24,9 +24,6 @@ Application.ScreenUpdating = False
     
     Set AWB = ThisWorkbook
     
-' test code
-  
-    
 
 'If part is for TSE stocks, you might need to adapt it to your Stock exchange
    
@@ -37,9 +34,8 @@ Application.ScreenUpdating = False
     End If
     
 
-
 'Parameters definition
-    Stock_Name = Range("B2")
+    Stock_Name = UCase(Range("B2"))
     avAPIKey = Range("B7").Value
     avFunction = Range("B4")
     avOutputSize = "full"
@@ -50,9 +46,7 @@ Application.ScreenUpdating = False
     'OutputSize: compact is latest 100 data points; (default) full is up to 20 years of historical data.
     'DataType :  json (default) or csv
    
-' more test
-    
-   
+
 ' Download from Alpha Vantage
 
     Workbooks.Open Filename:="https://www.alphavantage.co/query?" & _
@@ -64,24 +58,31 @@ Application.ScreenUpdating = False
 
 ' Change sheet name
    
-
-    timestamp = Format(Now, "MMddyyyy_hhmmss")
-    NewSheetName = Stock_Name & "_" & timestamp
+    'timestamp = Format(Now, "MMddyyyy_hhmmss")
+    'NewSheetName = Stock_Name & "_" & timestamp
+    
+    NewSheetName = Stock_Name & avExtension
     Workbooks("query").Sheets("query").Name = NewSheetName
-   
+    
+' check if sheet exists and delete
 
+    Dim ws As Worksheet
+    
+    For Each ws In ThisWorkbook.Sheets
+        If ws.Name = NewSheetName Then
+            
+            Application.DisplayAlerts = False
+            ws.Delete
+            Application.DisplayAlerts = True
+            
+            Exit For
+        End If
+    Next
+   
 ' move sheet
    
     Sheets(NewSheetName).Move After:=AWB.Sheets(1)
-    
-' AutoFit All Columns on Worksheet
 
-    ThisWorkbook.Worksheets(NewSheetName).Cells.EntireColumn.AutoFit
-    
-' Change zoom level
-
-    ThisWorkbook.Worksheets(NewSheetName).Select
-    ActiveWindow.Zoom = 110
     
 ' Find one year back
     CurrentDate = Date
@@ -132,6 +133,7 @@ Application.ScreenUpdating = False
     
     Set CheckRange = Worksheets(NewSheetName).Range("E2:E" & RowNum)
     AverageVal = Application.WorksheetFunction.Average(CheckRange)
+    AverageVal = Application.WorksheetFunction.Round(AverageVal, 2)
     
     If AverageVal <> 0 Then
         AboveAveVal = (CurrentVal - AverageVal) / AverageVal
@@ -139,10 +141,10 @@ Application.ScreenUpdating = False
         AboveAveVal = 0
     End If
         
-    Worksheets(NewSheetName).Range("K1").Value = "Max"
+    Worksheets(NewSheetName).Range("K1").Value = "MaxVal"
     Worksheets(NewSheetName).Range("K2").Value = MaxVal
     
-    Worksheets(NewSheetName).Range("L1").Value = "Min"
+    Worksheets(NewSheetName).Range("L1").Value = "MinVal"
     Worksheets(NewSheetName).Range("L2").Value = MinVal
     
     Worksheets(NewSheetName).Range("M1").Value = "Current"
@@ -168,6 +170,95 @@ Application.ScreenUpdating = False
     
     Worksheets(NewSheetName).Range("O7").Value = "AboveAve"
     Worksheets(NewSheetName).Range("O8").Value = FormatPercent(AboveAveVal, 2, vbTrue)
+    
+    ' Parse entire set of data
+    RowNum = 2
+    ContParse = True
+    
+        Do While ContParse
+    
+        If IsDate(ThisWorkbook.Worksheets(NewSheetName).Range("A" & RowNum).Value) = False Then
+            ContParse = False
+            
+            If RowNum > 2 Then
+                RowNum = RowNum - 1
+            End If
+            
+        Else:
+            RowNum = RowNum + 1
+        End If
+        
+    Loop
+    
+    ' print the final row
+    Worksheets(NewSheetName).Range("K11").Value = "Max Row"
+    Worksheets(NewSheetName).Range("K12").Value = RowNum
+    
+    ' find and print the first closing price
+    Dim firstVal As Variant
+    firstVal = ThisWorkbook.Worksheets(NewSheetName).Range("E" & RowNum).Value
+    
+    Worksheets(NewSheetName).Range("M11").Value = "1st val"
+    Worksheets(NewSheetName).Range("M12").Value = firstVal
+    
+    ' determine total growth over the period
+    Dim totGrow As Variant
+    totGrow = (CurrentVal - firstVal) / firstVal
+    
+    Worksheets(NewSheetName).Range("O11").Value = "Tot Grow"
+    Worksheets(NewSheetName).Range("O12").Value = FormatPercent(totGrow, 2, vbTrue)
+    
+    ' find the first date
+    Dim firstDate As Date
+    firstDate = ThisWorkbook.Worksheets(NewSheetName).Range("A" & RowNum).Value
+    
+    Worksheets(NewSheetName).Range("K14").Value = "1st date"
+    Worksheets(NewSheetName).Range("K15").Value = firstDate
+    
+    ' find current date
+    Dim currDate As Date
+    currDate = ThisWorkbook.Worksheets(NewSheetName).Range("A2").Value
+    
+    Worksheets(NewSheetName).Range("M14").Value = "currDate"
+    Worksheets(NewSheetName).Range("M15").Value = currDate
+    
+    ' find diff dates
+    Dim diffDates As Variant
+    diffDates = currDate - firstDate
+    
+    Worksheets(NewSheetName).Range("O14").Value = "diffDates"
+    Worksheets(NewSheetName).Range("O15").Value = diffDates
+    
+    ' total years of data
+    Dim totYears As Variant
+    totYears = diffDates / 365.2425
+    
+    Worksheets(NewSheetName).Range("K17").Value = "totYears"
+    Worksheets(NewSheetName).Range("K18").Value = Application.WorksheetFunction.Round(totYears, 2)
+    
+    ' find the average annual growth
+    Dim aveGrow As Variant
+    aveGrow = totGrow / totYears
+    
+    Worksheets(NewSheetName).Range("M17").Value = "aveGrow"
+    Worksheets(NewSheetName).Range("M18").Value = FormatPercent(aveGrow, 2, vbTrue)
+    
+    ' find the difference between previous year growth and ave 1 year growth
+    Dim diffGrow As Variant
+    diffGrow = GrowthVal - aveGrow
+    
+    Worksheets(NewSheetName).Range("O17").Value = "diffGrow"
+    Worksheets(NewSheetName).Range("O18").Value = FormatPercent(diffGrow, 2, vbTrue)
+        
+    ' Formatting
+    ' AutoFit All Columns on Worksheet
+
+    ThisWorkbook.Worksheets(NewSheetName).Cells.EntireColumn.AutoFit
+    
+    ' Change zoom level
+
+    ThisWorkbook.Worksheets(NewSheetName).Select
+    ActiveWindow.Zoom = 110
        
 End Sub
 
