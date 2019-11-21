@@ -15,10 +15,21 @@ This code does the following:
 - Determines the average growth per year for a security based on available historical data
 - Compares the current year's growth to the average annual growth
 
-To use this code it can be copied into the VBA editor within an Excel file.
+The code found in alpha_vantage_interface.vb can be copied into the VBA editor within an Excel file.
 - Macros must be enabled for the Excel file
 - Developer mode must be enabled in Excel
 
+Excel worksheet setup:
+- The Stock Exchange value of 'XTSE' can be added to cell B1 if accessing TSX securities. Leave blank for US exchanges.
+- The Stock Ticker value (such as 'VCE' for Vanguard Canadian ETF on TSX) should be added to cell B2.
+- The Report Type value of 'cf' for .cvs responses (as opposed to JSON) can be added to cell B3.
+- The Function value of 'TIME_SERIES_DAILY_ADJUSTED' for the type of query should be added to cell B4.
+- The unique APIKey value acquired at https://www.alphavantage.co/ should be added to cell B7.
+
+Running the tool:
+- Option 1: Run the code directly from the VBA editor. This is the simpler way albeit less elegant.
+- Option 2: Create a 'Run' button in the worksheet and link it to the VBA macro function.
+
 Please note, the interface code to Alpha Vantage was inspired by: https://thomasrainvillelapointe.blogspot.com/2017/12/equity-valuation-excel-vba-code-to-get_16.html
 
-The parsing, analysis, and metrics display code is custom
+The parsing, analysis, and metrics display code is custom.
