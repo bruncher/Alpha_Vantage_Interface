@@ -14,6 +14,7 @@ This code does the following:
 - Determines the percentage above 1-year average for the current price
 - Determines the average growth per year for a security based on available historical data
 - Compares the current year's growth to the average annual growth
+- Displays the 1-year growth for the adjusted price
 
 The code found in alpha_vantage_interface.vb can be copied into the VBA editor within an Excel file.
 - Macros must be enabled for the Excel file
