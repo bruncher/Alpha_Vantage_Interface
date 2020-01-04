@@ -21,6 +21,7 @@ Application.ScreenUpdating = False
     
     Dim CheckRange As Range
     Dim MinVal, MaxVal, CurrentVal, AboveVal, PercentVal, OneYearVal, GrowthVal, AverageVal, AboveAveVal As Variant
+    Dim OneYearAdj, GrowthAdj As Variant
     
     Set AWB = ThisWorkbook
     
@@ -131,6 +132,15 @@ Application.ScreenUpdating = False
         GrowthVal = 0
     End If
     
+    ' collect adjusted one year value as well
+    OneYearAdj = Worksheets(NewSheetName).Range("F" & RowNum).Value
+    
+    If OneYearAdj <> 0 Then
+        GrowthAdj = (CurrentVal - OneYearAdj) / OneYearAdj
+    Else:
+        GrowthAdj = 0
+    End If
+    
     Set CheckRange = Worksheets(NewSheetName).Range("E2:E" & RowNum)
     AverageVal = Application.WorksheetFunction.Average(CheckRange)
     AverageVal = Application.WorksheetFunction.Round(AverageVal, 2)
@@ -156,13 +166,13 @@ Application.ScreenUpdating = False
     Worksheets(NewSheetName).Range("M4").Value = "Above"
     Worksheets(NewSheetName).Range("M5").Value = AboveVal
     
-    Worksheets(NewSheetName).Range("K7").Value = "Percent"
+    Worksheets(NewSheetName).Range("K7").Value = "MinMax"
     Worksheets(NewSheetName).Range("K8").Value = FormatPercent(PercentVal, 2, vbTrue)
 
     Worksheets(NewSheetName).Range("N1").Value = "OneYear"
     Worksheets(NewSheetName).Range("N2").Value = OneYearVal
     
-    Worksheets(NewSheetName).Range("M7").Value = "Growth"
+    Worksheets(NewSheetName).Range("M7").Value = "1yrGrowth"
     Worksheets(NewSheetName).Range("M8").Value = FormatPercent(GrowthVal, 2, vbTrue)
     
     Worksheets(NewSheetName).Range("O4").Value = "Average"
@@ -233,22 +243,37 @@ Application.ScreenUpdating = False
     Dim totYears As Variant
     totYears = diffDates / 365.2425
     
-    Worksheets(NewSheetName).Range("K17").Value = "totYears"
+    Worksheets(NewSheetName).Range("K17").Value = "TotYears"
     Worksheets(NewSheetName).Range("K18").Value = Application.WorksheetFunction.Round(totYears, 2)
     
     ' find the average annual growth
     Dim aveGrow As Variant
     aveGrow = totGrow / totYears
     
-    Worksheets(NewSheetName).Range("M17").Value = "aveGrow"
+    Worksheets(NewSheetName).Range("M17").Value = "AveGrowth"
     Worksheets(NewSheetName).Range("M18").Value = FormatPercent(aveGrow, 2, vbTrue)
     
     ' find the difference between previous year growth and ave 1 year growth
     Dim diffGrow As Variant
     diffGrow = GrowthVal - aveGrow
     
-    Worksheets(NewSheetName).Range("O17").Value = "diffGrow"
+    Worksheets(NewSheetName).Range("O17").Value = "DiffGrowth"
     Worksheets(NewSheetName).Range("O18").Value = FormatPercent(diffGrow, 2, vbTrue)
+    
+    ' 1-year adjusted price
+    Worksheets(NewSheetName).Range("K20").Value = "OneYearAdj"
+    Worksheets(NewSheetName).Range("K21").Value = Application.WorksheetFunction.Round(OneYearAdj, 2)
+    
+    ' 1-year adjusted growth
+    Worksheets(NewSheetName).Range("M20").Value = "1yrAdj"
+    Worksheets(NewSheetName).Range("M21").Value = FormatPercent(GrowthAdj, 2, vbTrue)
+    
+    ' find the difference between adjusted growth and price growth
+    Dim diffAdj As Variant
+    diffAdj = GrowthAdj - GrowthVal
+    
+    Worksheets(NewSheetName).Range("O20").Value = "DiffAdj"
+    Worksheets(NewSheetName).Range("O21").Value = FormatPercent(diffAdj, 2, vbTrue)
         
     ' Formatting
     ' AutoFit All Columns on Worksheet
